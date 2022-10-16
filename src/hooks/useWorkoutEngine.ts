@@ -35,7 +35,7 @@ const useWorkoutEngine = () => {
     const timer = useRef<number>(0);
     const currentSegment = useRef<number>(0);
     let stride: Stride = StrideType.Jog;
-    const time = sToMMSS(timer.current);
+    const time = sToMMSS(timer.current - 3);
     const totalTime = sToMMSS(duration - 3);
     const percentage = 100 - (timer.current * 100) / duration;
     const segmentNumber = currentSegment.current;

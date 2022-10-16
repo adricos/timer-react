@@ -271,6 +271,7 @@ const Home: React.FC = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: width > height ? 'row' : 'column',
+                        overflow: 'hidden',
                     }}
                 >
                     <div
@@ -466,7 +467,11 @@ const Home: React.FC = () => {
                                     <div>
                                         <IonIcon icon={statsChart} />
                                     </div>
-                                    <div>{`${engine.segments.length - 1}`}</div>
+                                    <div>{`${
+                                        engine.segments.length - 1 < 0
+                                            ? 0
+                                            : engine.segments.length - 1
+                                    }`}</div>
                                 </div>
                                 <div>
                                     <IonIcon icon={removeOutline} />
