@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "naumovs.color-highlight",
+        "dsznajder.es7-react-js-snippets",
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "kimlimjustin.jsdoc-generator",
+        "quicktype.quicktype",
+        "csstools.postcss",
+        "esbenp.prettier-vscode"
+    ]
+}

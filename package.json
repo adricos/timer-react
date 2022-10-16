@@ -1,0 +1,89 @@
+{
+  "name": "timer",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@capacitor-community/http": "^1.4.1",
+    "@capacitor-community/native-audio": "^4.0.0-0",
+    "@capacitor/android": "4.3.0",
+    "@capacitor/app": "4.0.1",
+    "@capacitor/core": "4.3.0",
+    "@capacitor/haptics": "4.0.1",
+    "@capacitor/keyboard": "4.0.1",
+    "@capacitor/preferences": "^4.0.1",
+    "@capacitor/status-bar": "4.0.1",
+    "@ionic/react": "^6.0.0",
+    "@ionic/react-router": "^6.0.0",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^12.6.3",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^12.19.15",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "@types/react-router": "^5.1.11",
+    "@types/react-router-dom": "^5.1.7",
+    "chart.js": "^3.9.1",
+    "color": "^4.2.1",
+    "ionicons": "^6.0.3",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^4.3.1",
+    "react-dom": "^18.2.0",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "^5.0.0",
+    "react-virtuoso": "^3.0.0",
+    "sass": "^1.55.0",
+    "typescript": "^4.1.3",
+    "web-vitals": "^0.2.4",
+    "workbox-background-sync": "^5.1.4",
+    "workbox-broadcast-update": "^5.1.4",
+    "workbox-cacheable-response": "^5.1.4",
+    "workbox-core": "^5.1.4",
+    "workbox-expiration": "^5.1.4",
+    "workbox-google-analytics": "^5.1.4",
+    "workbox-navigation-preload": "^5.1.4",
+    "workbox-precaching": "^5.1.4",
+    "workbox-range-requests": "^5.1.4",
+    "workbox-routing": "^5.1.4",
+    "workbox-strategies": "^5.1.4",
+    "workbox-streams": "^5.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "description": "An Ionic project",
+  "devDependencies": {
+    "@capacitor/cli": "4.3.0",
+    "@types/color": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-react": "^7.30.1",
+    "prettier": "2.6.1"
+  }
+}
