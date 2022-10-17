@@ -313,8 +313,9 @@ const Home: React.FC = () => {
                                     )}
                                 />
                                 <text x="3%" y="9%" className="timer-subtext">
-                                    {engine.segmentNumber} /{' '}
-                                    {engine.segments.length - 1}
+                                    {`${engine.segmentNumber} / ${
+                                        engine.segments.length - 1
+                                    }`}
                                 </text>
                                 <text x="77%" y="9%" className="timer-subtext">
                                     {engine.totalTime}
