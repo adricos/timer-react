@@ -5,11 +5,6 @@ import { Pace } from '../models/pace';
 import { useRef, useState } from 'react';
 import useInterval from './useInterval';
 
-export const circleR = 40;
-export const circleDasharray = 2 * Math.PI * circleR;
-export const segmentCircleR = 34;
-export const segmentCircleDasharray = 2 * Math.PI * segmentCircleR;
-
 export const sToMMSS = (s: number, delim = ':'): string => {
     if (s < 0) {
         s = 0;
@@ -20,16 +15,12 @@ export const sToMMSS = (s: number, delim = ':'): string => {
     return `${minutes}${delim}${seconds}`;
 };
 
-export const percentageOffset = (percent: number, circle: number): number => {
-    return (circle * percent) / 100.0;
-};
-
 const useWorkoutEngine = () => {
     const [segmentElapsedTime, setSegmentElapsedTime] = useState<number>(0);
     const [segments, setSegments] = useState<Segment[]>([]);
     const [segmentsGraph, setSegmentsGraph] = useState<number[]>([]);
     const [duration, setDuration] = useState<number>(0);
-    const [state, setState] = useState<'start' | 'stop' | 'pause' | 'end'>(
+    const [status, setStatus] = useState<'start' | 'stop' | 'pause' | 'end'>(
         'stop',
     );
     const timer = useRef<number>(0);
@@ -73,7 +64,7 @@ const useWorkoutEngine = () => {
             setComplete(currentSegment.current, true);
             currentSegment.current += 1;
             if (currentSegment.current === segments.length) {
-                setState('end');
+                setStatus('end');
                 stopInterval();
             } else {
                 setComplete(currentSegment.current, false);
@@ -89,7 +80,7 @@ const useWorkoutEngine = () => {
         clearComplete();
         stopInterval();
         setSegmentElapsedTime(0);
-        setState('stop');
+        setStatus('stop');
     };
 
     const load = (workout: Workout, currentStride: Stride) => {
@@ -129,16 +120,16 @@ const useWorkoutEngine = () => {
     };
 
     const toggle = () => {
-        if (state === 'start') {
-            setState('pause');
+        if (status === 'start') {
+            setStatus('pause');
             stopInterval();
-        } else if (state === 'pause') {
-            setState('start');
+        } else if (status === 'pause') {
+            setStatus('start');
             setComplete(currentSegment.current, false);
             updateTimeValue();
             startInterval();
         } else {
-            setState('start');
+            setStatus('start');
             timer.current = 0;
             currentSegment.current = 0;
             clearComplete();
@@ -160,7 +151,7 @@ const useWorkoutEngine = () => {
         totalTime,
         segmentsGraph,
         segmentElapsedTime,
-        state,
+        status,
 
         load,
         toggle,

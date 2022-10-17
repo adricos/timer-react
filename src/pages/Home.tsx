@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import {
     IonButton,
     IonButtons,
@@ -26,66 +27,32 @@ import {
     square,
     removeOutline,
 } from 'ionicons/icons';
-import { useState, useEffect, useRef } from 'react';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { useQuery } from 'react-query';
 import { Preferences } from '@capacitor/preferences';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
-import {
-    useGetInfo,
-    useGetLanguageCode,
-    availableFeatures,
-} from '@capacitor-community/device-react';
-
+import { useGetLanguageCode } from '@capacitor-community/device-react';
 import { Http } from '@capacitor-community/http';
 import { PaceName } from 'models/pace';
-
-import './Home.css';
 import { GitFile } from 'models/gitFile';
 import { Workout } from 'models/workout';
 import { StrideType } from 'models/stride';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { Line } from 'react-chartjs-2';
-import useWorkoutEngine, {
-    circleDasharray,
-    circleR,
-    percentageOffset,
-    segmentCircleDasharray,
-    segmentCircleR,
-    sToMMSS,
-} from 'hooks/useWorkoutEngine';
 
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-} from 'chart.js';
+import useWorkoutEngine, { sToMMSS } from 'hooks/useWorkoutEngine';
 import useInterval from 'hooks/useInterval';
 import useWindowDimensions from 'hooks/useWindowsDimension';
+import WorkoutStatus from 'components/WorkoutStatus/WorkoutStatus';
+import WorkoutChart from 'components/WorkoutChart/WorkoutChart';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-);
+import './Home.css';
 
 const Home: React.FC = () => {
     const engine = useWorkoutEngine();
     const { height, width } = useWindowDimensions();
-    const { info } = useGetInfo();
     const { languageCode } = useGetLanguageCode();
 
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
-    const [circleColor, setCircleColor] = useState<string>();
     const [time, setTime] = useState<string>();
     const scroll = useRef<VirtuosoHandle>(null);
     const { data: languages } = useQuery(['getSupportedVoices'], () =>
@@ -108,23 +75,14 @@ const Home: React.FC = () => {
     const { start, stop } = useInterval(updateTime);
 
     useEffect(() => {
-        console.log(languageCode);
-    }, [languageCode]);
-
-    useEffect(() => {
-        console.log(info);
-    }, [info]);
-    useEffect(() => {
-        console.log(availableFeatures);
-        TextToSpeech.getSupportedLanguages().then((result) => {
-            console.log(result.languages);
-        });
-        TextToSpeech.getSupportedVoices().then((result) => {
-            console.log(result.voices);
-        });
-
         Preferences.get({ key: 'workouts' })
-            .then((val) => setWorkoutsArray(JSON.parse(val.value ?? '{}')))
+            .then((val) => {
+                if (val.value === null) {
+                    sync();
+                } else {
+                    setWorkoutsArray(JSON.parse(val.value ?? '{}'));
+                }
+            })
             .catch(() => sync())
             .finally(() => start());
         return () => {
@@ -135,7 +93,6 @@ const Home: React.FC = () => {
 
     useEffect(() => {
         const s = engine.segmentElapsedTime;
-        setCircleColor(getCircleClass(s));
         if (s < 6 && s > 0) {
             TextToSpeech.speak({
                 text: s.toString(),
@@ -152,15 +109,14 @@ const Home: React.FC = () => {
         scrollTo(engine.segmentNumber);
     }, [engine.segmentNumber]);
 
-    const toggleDarkMode = () => document.body.classList.toggle('dark');
-
-    const isDarkMode = () => document.body.classList.contains('dark');
-
     const scrollTo = (item: number): void => {
         if (scroll && scroll.current) {
             scroll.current.scrollToIndex(item);
         }
     };
+
+    const toggleDarkMode = () => document.body.classList.toggle('dark');
+    const isDarkMode = () => document.body.classList.contains('dark');
 
     const sync = () => {
         setIsSyncing(true);
@@ -201,13 +157,6 @@ const Home: React.FC = () => {
         });
     };
 
-    const getCircleClass = (value: number) => {
-        if (value < 6 && value > 0) {
-            return 'elapsed-' + value.toString();
-        }
-        return 'elapsed-any';
-    };
-
     const loadWorkout = (event: any) => {
         engine.load(workoutsArray[event.detail.value], StrideType.Jog);
     };
@@ -223,8 +172,7 @@ const Home: React.FC = () => {
                             onIonChange={loadWorkout}
                             disabled={
                                 workoutsArray.length <= 0 ||
-                                (engine.state !== 'end' &&
-                                    engine.state !== 'stop')
+                                !['end', 'stop'].includes(engine.status)
                             }
                         >
                             {workoutsArray.map((item, i) => (
@@ -242,8 +190,7 @@ const Home: React.FC = () => {
                             onClick={sync}
                             disabled={
                                 isSyncing ||
-                                (engine.state !== 'end' &&
-                                    engine.state !== 'stop')
+                                !['end', 'stop'].includes(engine.status)
                             }
                         >
                             {isSyncing && <IonSpinner name="lines-small" />}
@@ -280,113 +227,15 @@ const Home: React.FC = () => {
                             height: width > height ? '100%' : '60%',
                         }}
                     >
-                        {['start', 'pause'].includes(engine.state) && (
-                            <svg
-                                width="100%"
-                                height="100%"
-                                viewBox="0 0 100 100"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle
-                                    cx="50%"
-                                    cy="50%"
-                                    strokeWidth="12"
-                                    r={(circleR + segmentCircleR) / 2}
-                                    className={circleColor}
-                                />
-                                <circle
-                                    className="timer-circle timer-circle-general"
-                                    r={circleR}
-                                    strokeDasharray={circleDasharray}
-                                    strokeDashoffset={percentageOffset(
-                                        engine.percentage,
-                                        circleDasharray,
-                                    )}
-                                />
-                                <circle
-                                    className="timer-circle timer-circle-segment"
-                                    r={segmentCircleR}
-                                    strokeDasharray={segmentCircleDasharray}
-                                    strokeDashoffset={percentageOffset(
-                                        engine.segmentPercentage,
-                                        segmentCircleDasharray,
-                                    )}
-                                />
-                                <text x="3%" y="9%" className="timer-subtext">
-                                    {`${engine.segmentNumber} / ${
-                                        engine.segments.length - 1
-                                    }`}
-                                </text>
-                                <text x="77%" y="9%" className="timer-subtext">
-                                    {engine.totalTime}
-                                </text>
-                                <text x="40%" y="30%" className="timer-subtext">
-                                    {engine.time}
-                                </text>
-                                <text x="50%" y="50%" className="timer-text">
-                                    {engine.segmentTime}
-                                </text>
-                                <text x="50%" y="68%" className="timer-text">
-                                    {(engine.segment.speed ?? 0).toFixed(1)}
-                                </text>
-                                <text x="44%" y="78%" className="timer-subtext">
-                                    {(engine.nextSegment.speed ?? 0).toFixed(1)}
-                                </text>
-                                <text x="77%" y="98%" className="timer-subtext">
-                                    {time}
-                                </text>
-                            </svg>
+                        {['start', 'pause'].includes(engine.status) ? (
+                            <WorkoutStatus engine={engine} time={time} />
+                        ) : engine.segments.length > 0 ? (
+                            <WorkoutChart
+                                segmentsGraph={engine.segmentsGraph}
+                            />
+                        ) : (
+                            ''
                         )}
-                        {engine.segments.length > 0 &&
-                            !['start', 'pause'].includes(engine.state) && (
-                                <Line
-                                    options={{
-                                        plugins: {
-                                            tooltip: {
-                                                enabled: false,
-                                            },
-                                            legend: {
-                                                display: false,
-                                            },
-                                        },
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        scales: {
-                                            x: {
-                                                display: false,
-                                            },
-                                            y: {
-                                                display: true,
-                                                grid: {
-                                                    drawBorder: false,
-                                                },
-                                                ticks: {
-                                                    display: false,
-                                                },
-                                            },
-                                        },
-                                    }}
-                                    data={{
-                                        labels: engine.segmentsGraph.map(
-                                            () => '',
-                                        ),
-                                        datasets: [
-                                            {
-                                                data: engine.segmentsGraph,
-                                                backgroundColor:
-                                                    'rgba(0, 0, 0, 0)',
-                                                borderColor:
-                                                    'rgb(38, 194, 129)',
-                                                borderWidth: 3,
-                                                pointBackgroundColor:
-                                                    'rgba(0, 0, 0, 0)',
-                                                pointBorderColor:
-                                                    'rgba(0, 0, 0, 0)',
-                                            },
-                                        ],
-                                    }}
-                                />
-                            )}
                     </div>
                     <div
                         style={{
@@ -443,7 +292,7 @@ const Home: React.FC = () => {
             <IonFooter>
                 <IonToolbar>
                     <IonTitle>
-                        {['start', 'pause'].includes(engine.state) ? (
+                        {['start', 'pause'].includes(engine.status) ? (
                             <>
                                 <IonIcon icon={PaceName[engine.segment.pace]} />
                                 <IonIcon icon={arrowForward} />
@@ -491,7 +340,7 @@ const Home: React.FC = () => {
                         )}
                     </IonTitle>
                     <IonButtons slot="end">
-                        {engine.state !== 'stop' && engine.state !== 'end' && (
+                        {!['end', 'stop'].includes(engine.status) && (
                             <IonButton
                                 size="large"
                                 color="primary"
@@ -512,7 +361,7 @@ const Home: React.FC = () => {
                                 slot="icon-only"
                                 icon={
                                     ['pause', 'end', 'stop'].includes(
-                                        engine.state,
+                                        engine.status,
                                     )
                                         ? play
                                         : pause
