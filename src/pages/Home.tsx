@@ -33,6 +33,7 @@ import { Preferences } from '@capacitor/preferences';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { useGetLanguageCode } from '@capacitor-community/device-react';
 import { Http } from '@capacitor-community/http';
+import { sortBy } from 'lodash';
 import { PaceName } from 'models/pace';
 import { GitFile } from 'models/gitFile';
 import { Workout } from 'models/workout';
@@ -53,11 +54,15 @@ const Home: React.FC = () => {
 
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
+    const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const [time, setTime] = useState<string>();
     const scroll = useRef<VirtuosoHandle>(null);
     const { data: languages } = useQuery(['getSupportedVoices'], () =>
         TextToSpeech.getSupportedLanguages().then((result) => result.languages),
     );
+    const isMediaDark = window.matchMedia(
+        '(prefers-color-scheme: dark)',
+    ).matches;
 
     const repo = 'https://api.github.com/repos/adricos/workouts/contents/files';
 
@@ -73,6 +78,46 @@ const Home: React.FC = () => {
     };
 
     const { start, stop } = useInterval(updateTime);
+
+    const sync = () => {
+        setIsSyncing(true);
+
+        Http.get({
+            url: repo,
+        }).then((data) => {
+            const files = data.data as GitFile[];
+            const arr = files.map((f) => Http.get({ url: f.download_url }));
+            Promise.all(arr)
+                .then((results) => {
+                    setWorkoutsArray((w) => {
+                        if (results.length > 0) {
+                            const newWorkoutsArray = sortBy(
+                                results.map(
+                                    (r) => JSON.parse(r.data) as Workout,
+                                ),
+                                (item) => item.name.toLowerCase(),
+                            );
+                            Preferences.set({
+                                key: 'workouts',
+                                value: JSON.stringify(newWorkoutsArray),
+                            });
+                            return newWorkoutsArray;
+                        }
+                        return [];
+                    });
+                })
+                .finally(() => {
+                    setIsSyncing(false);
+                });
+        });
+    };
+
+    useEffect(() => {
+        setIsDarkMode(isMediaDark);
+        if (isMediaDark) {
+            document.body.classList.toggle('dark', isMediaDark);
+        }
+    }, [isMediaDark]);
 
     useEffect(() => {
         Preferences.get({ key: 'workouts' })
@@ -115,46 +160,9 @@ const Home: React.FC = () => {
         }
     };
 
-    const toggleDarkMode = () => document.body.classList.toggle('dark');
-    const isDarkMode = () => document.body.classList.contains('dark');
-
-    const sync = () => {
-        setIsSyncing(true);
-
-        Http.get({
-            url: repo,
-        }).then((data) => {
-            const files = data.data as GitFile[];
-            const arr = files.map((f) => Http.get({ url: f.download_url }));
-            Promise.all(arr)
-                .then((results) => {
-                    setWorkoutsArray((w) => {
-                        const newWorkoutsArray = results
-                            .map((r) => JSON.parse(r.data) as Workout)
-                            .sort(function (a, b) {
-                                const nameA = a.name.toUpperCase();
-                                const nameB = b.name.toUpperCase();
-                                if (nameA < nameB) {
-                                    return -1;
-                                }
-                                if (nameA > nameB) {
-                                    return 1;
-                                }
-                                return 0;
-                            });
-                        if (newWorkoutsArray.length > 0) {
-                            Preferences.set({
-                                key: 'workouts',
-                                value: JSON.stringify(newWorkoutsArray),
-                            });
-                        }
-                        return newWorkoutsArray;
-                    });
-                })
-                .finally(() => {
-                    setIsSyncing(false);
-                });
-        });
+    const toggleDarkMode = (event: any) => {
+        document.body.classList.toggle('dark');
+        setIsDarkMode((d) => !d);
     };
 
     const loadWorkout = (event: any) => {
@@ -206,7 +214,7 @@ const Home: React.FC = () => {
                         >
                             <IonIcon
                                 slot="icon-only"
-                                icon={isDarkMode() ? sunny : moon}
+                                icon={isDarkMode ? sunny : moon}
                             />
                         </IonButton>
                     </IonButtons>
