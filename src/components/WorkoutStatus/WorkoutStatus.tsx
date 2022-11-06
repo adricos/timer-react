@@ -71,7 +71,7 @@ const WorkoutStatus = ({ engine, circleColor, time }: WorkoutStatusProps) => {
                 {(engine.nextSegment.speed ?? 0).toFixed(1)}
             </text>
             <text x="77%" y="98%" className="timer-subtext">
-                {time}
+                {/* {time} */}
             </text>
         </svg>
     );

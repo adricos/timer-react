@@ -25,47 +25,62 @@ export type WorkoutChartProps = {
 };
 const WorkoutChart = ({ segmentsGraph }: WorkoutChartProps) => {
     return (
-        <Line
-            options={{
-                plugins: {
-                    tooltip: {
-                        enabled: false,
-                    },
-                    legend: {
-                        display: false,
-                    },
-                },
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        display: false,
-                    },
-                    y: {
-                        display: true,
-                        grid: {
-                            drawBorder: false,
+        <>
+            {segmentsGraph.length > 0 && (
+                <Line
+                    options={{
+                        plugins: {
+                            tooltip: {
+                                enabled: false,
+                            },
+                            legend: {
+                                display: false,
+                                labels: {
+                                    font: {
+                                        family: 'Bahnschrift',
+                                        size: 20,
+                                    },
+                                },
+                            },
                         },
-                        ticks: {
-                            display: false,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                display: false,
+                            },
+                            y: {
+                                beginAtZero: true,
+                                display: true,
+                                grid: {
+                                    drawBorder: false,
+                                },
+                                ticks: {
+                                    display: true,
+                                    font: {
+                                        family: 'Bahnschrift',
+                                        size: 20,
+                                    },
+                                },
+                            },
                         },
-                    },
-                },
-            }}
-            data={{
-                labels: segmentsGraph.map(() => ''),
-                datasets: [
-                    {
-                        data: segmentsGraph,
-                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                        borderColor: 'rgb(38, 194, 129)',
-                        borderWidth: 3,
-                        pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                        pointBorderColor: 'rgba(0, 0, 0, 0)',
-                    },
-                ],
-            }}
-        />
+                    }}
+                    data={{
+                        labels: segmentsGraph.map(() => ''),
+                        datasets: [
+                            {
+                                data: segmentsGraph,
+                                backgroundColor: 'rgba(0, 0, 0, 0)',
+                                borderColor: 'rgb(38, 194, 129)',
+                                borderWidth: 3,
+                                pointBackgroundColor: 'rgba(0, 0, 0, 0)',
+                                pointBorderColor: 'rgba(0, 0, 0, 0)',
+                            },
+                        ],
+                    }}
+                />
+            )}
+        </>
     );
 };
 export default WorkoutChart;

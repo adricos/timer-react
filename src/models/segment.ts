@@ -5,5 +5,5 @@ export class Segment {
     public startTime = 0;
     public endTime = 0;
     public completed?: boolean;
-    public speed?: number;
+    public speed = 0;
 }

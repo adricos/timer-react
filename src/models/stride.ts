@@ -15,7 +15,6 @@ export class Stride {
         this.values[Pace.toTheMax] = toTheMax;
         this.values[Pace.walkItOut] = walkItOut;
         this.values[Pace.coolDown] = coolDown;
-        this.values[Pace.start] = 0.0;
     }
 }
 

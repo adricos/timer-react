@@ -1,13 +1,3 @@
-import {
-    flame,
-    walk,
-    trendingUp,
-    rocket,
-    trendingDown,
-    snow,
-    flag,
-} from 'ionicons/icons';
-
 export enum Pace {
     warmUp,
     niceSteady,
@@ -15,15 +5,22 @@ export enum Pace {
     toTheMax,
     walkItOut,
     coolDown,
-    start,
 }
 
 export const PaceName = [
-    flame,
-    walk,
-    trendingUp,
-    rocket,
-    trendingDown,
-    snow,
-    flag,
+    'warm up',
+    'nice steady',
+    'pick it up',
+    'to the max',
+    'walk it out',
+    'cool down',
+];
+
+export const PaceColor = [
+    '#f84d04',
+    '#ac4ffc',
+    '#8504f6',
+    '#5f03b0',
+    '#cf9bfd',
+    '#04a5f6',
 ];

@@ -7,7 +7,6 @@ import {
     IonHeader,
     IonIcon,
     IonItem,
-    IonLabel,
     IonPage,
     IonSelect,
     IonSelectOption,
@@ -21,7 +20,6 @@ import {
     moon,
     statsChart,
     stopwatch,
-    arrowForward,
     pause,
     play,
     square,
@@ -29,17 +27,17 @@ import {
 } from 'ionicons/icons';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { useQuery } from 'react-query';
+import { format } from 'date-fns';
 import { Preferences } from '@capacitor/preferences';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { useGetLanguageCode } from '@capacitor-community/device-react';
 import { Http } from '@capacitor-community/http';
 import { sortBy } from 'lodash';
-import { PaceName } from 'models/pace';
 import { GitFile } from 'models/gitFile';
 import { Workout } from 'models/workout';
 import { StrideType } from 'models/stride';
 
-import useWorkoutEngine, { sToMMSS } from 'hooks/useWorkoutEngine';
+import useWorkoutEngine, { sToHms } from 'hooks/useWorkoutEngine';
 import useInterval from 'hooks/useInterval';
 import useWindowDimensions from 'hooks/useWindowsDimension';
 import WorkoutStatus from 'components/WorkoutStatus/WorkoutStatus';
@@ -67,14 +65,7 @@ const Home: React.FC = () => {
     const repo = 'https://api.github.com/repos/adricos/workouts/contents/files';
 
     const updateTime = () => {
-        const currentTime = Date.now();
-        const GMT = -new Date().getTimezoneOffset() / 60;
-        const totalSeconds = Math.floor(currentTime / 1000);
-        const totalMinutes = Math.floor(totalSeconds / 60);
-        const minutes = ('0' + (totalMinutes % 60)).slice(-2);
-        const totalHours = Math.floor(totalMinutes / 60);
-        const hours = ('0' + ((totalHours + GMT) % 24)).slice(-2);
-        setTime(hours + ':' + minutes);
+        setTime(format(Date.now(), 'HH:mm'));
     };
 
     const { start, stop } = useInterval(updateTime);
@@ -180,7 +171,7 @@ const Home: React.FC = () => {
                             onIonChange={loadWorkout}
                             disabled={
                                 workoutsArray.length <= 0 ||
-                                !['end', 'stop'].includes(engine.status)
+                                engine.status !== 'stopped'
                             }
                         >
                             {workoutsArray.map((item, i) => (
@@ -196,14 +187,12 @@ const Home: React.FC = () => {
                             color="primary"
                             fill="solid"
                             onClick={sync}
-                            disabled={
-                                isSyncing ||
-                                !['end', 'stop'].includes(engine.status)
-                            }
+                            disabled={isSyncing || engine.status !== 'stopped'}
                         >
-                            {isSyncing && <IonSpinner name="lines-small" />}
-                            {!isSyncing && (
-                                <IonIcon slot="icon-only" icon={syncIcon} />
+                            {isSyncing ? (
+                                <IonSpinner name="lines-small" />
+                            ) : (
+                                <IonIcon icon={syncIcon} />
                             )}
                         </IonButton>
                         <IonButton
@@ -212,10 +201,7 @@ const Home: React.FC = () => {
                             fill="solid"
                             onClick={toggleDarkMode}
                         >
-                            <IonIcon
-                                slot="icon-only"
-                                icon={isDarkMode ? sunny : moon}
-                            />
+                            <IonIcon icon={isDarkMode ? sunny : moon} />
                         </IonButton>
                     </IonButtons>
                 </IonToolbar>
@@ -235,14 +221,12 @@ const Home: React.FC = () => {
                             height: width > height ? '100%' : '60%',
                         }}
                     >
-                        {['start', 'pause'].includes(engine.status) ? (
+                        {engine.status !== 'stopped' ? (
                             <WorkoutStatus engine={engine} time={time} />
-                        ) : engine.segments.length > 0 ? (
+                        ) : (
                             <WorkoutChart
                                 segmentsGraph={engine.segmentsGraph}
                             />
-                        ) : (
-                            ''
                         )}
                     </div>
                     <div
@@ -254,42 +238,28 @@ const Home: React.FC = () => {
                         <Virtuoso
                             className="ion-content-scroll-host"
                             ref={scroll}
-                            totalCount={engine.segments.length}
-                            itemContent={(index) => {
+                            data={engine.segments}
+                            itemContent={(index, segment) => {
                                 return (
                                     <IonItem
-                                        {...(engine.segments[index]
-                                            .completed === undefined
+                                        {...(segment.completed === undefined
                                             ? {}
                                             : {
-                                                  color: engine.segments[index]
-                                                      .completed
+                                                  color: segment.completed
                                                       ? 'success'
                                                       : 'primary',
                                               })}
                                         className="segment"
                                     >
-                                        <IonLabel>
-                                            {sToMMSS(
-                                                engine.segments[index].time,
-                                            )}
-                                        </IonLabel>
-                                        <IonLabel>
-                                            <h1>
+                                        <div className="item-content">
+                                            <div>{sToHms(segment.time)}</div>
+                                            <div>
                                                 {`${(
-                                                    engine.segments[index]
-                                                        .speed ?? 0
+                                                    segment.speed ?? 0
                                                 ).toFixed(1)} mph`}
-                                            </h1>
-                                        </IonLabel>
-                                        <IonIcon
-                                            slot="end"
-                                            icon={
-                                                PaceName[
-                                                    engine.segments[index].pace
-                                                ]
-                                            }
-                                        />
+                                            </div>
+                                            <div>{index}</div>
+                                        </div>
                                     </IonItem>
                                 );
                             }}
@@ -299,63 +269,56 @@ const Home: React.FC = () => {
             </IonContent>
             <IonFooter>
                 <IonToolbar>
-                    <IonTitle>
-                        {['start', 'pause'].includes(engine.status) ? (
-                            <>
-                                <IonIcon icon={PaceName[engine.segment.pace]} />
-                                <IonIcon icon={arrowForward} />
-                                <IonIcon
-                                    icon={PaceName[engine.nextSegment.pace]}
-                                />
-                            </>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignContent: 'center',
+                            margin: '8px',
+                            gap: '8px',
+                            fontSize: '26px',
+                        }}
+                    >
+                        {engine.status !== 'stopped' ? (
+                            time
                         ) : (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                }}
-                            >
+                            <>
                                 <div
                                     style={{
                                         display: 'flex',
-                                        alignItems: 'center',
+                                        alignContent: 'center',
                                         gap: '4px',
                                     }}
                                 >
+                                    <IonIcon icon={statsChart} />
                                     <div>
-                                        <IonIcon icon={statsChart} />
-                                    </div>
-                                    <div>{`${
-                                        engine.segments.length - 1 < 0
+                                        {engine.segments.length - 1 < 0
                                             ? 0
-                                            : engine.segments.length - 1
-                                    }`}</div>
+                                            : engine.segments.length - 1}
+                                    </div>
                                 </div>
-                                <div>
-                                    <IonIcon icon={removeOutline} />
-                                </div>
+                                <IonIcon icon={removeOutline} />
                                 <div
                                     style={{
                                         display: 'flex',
-                                        alignItems: 'center',
+                                        alignContent: 'center',
                                         gap: '4px',
                                     }}
                                 >
                                     <IonIcon icon={stopwatch} />
                                     <div>{engine.totalTime}</div>
                                 </div>
-                            </div>
+                            </>
                         )}
-                    </IonTitle>
+                    </div>
                     <IonButtons slot="end">
-                        {!['end', 'stop'].includes(engine.status) && (
+                        {engine.status !== 'stopped' && (
                             <IonButton
                                 size="large"
                                 color="primary"
                                 fill="solid"
                                 onClick={engine.stop}
                             >
-                                <IonIcon slot="icon-only" icon={square} />
+                                <IonIcon icon={square} />
                             </IonButton>
                         )}
                         <IonButton
@@ -366,13 +329,8 @@ const Home: React.FC = () => {
                             onClick={engine.toggle}
                         >
                             <IonIcon
-                                slot="icon-only"
                                 icon={
-                                    ['pause', 'end', 'stop'].includes(
-                                        engine.status,
-                                    )
-                                        ? play
-                                        : pause
+                                    engine.status === 'running' ? pause : play
                                 }
                             />
                         </IonButton>

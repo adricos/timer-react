@@ -3,4 +3,11 @@
     margin-top: 6px;
     margin-bottom: 6px;
     box-shadow: none !important;
+    font-size: 26px;
+}
+
+.item-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
 }

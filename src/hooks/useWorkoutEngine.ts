@@ -5,14 +5,15 @@ import { Pace } from '../models/pace';
 import { useRef, useState } from 'react';
 import useInterval from './useInterval';
 
-export const sToMMSS = (s: number, delim = ':'): string => {
-    if (s < 0) {
-        s = 0;
-    }
-    const showWith0 = (value: number) => `${value < 10 ? '0' : ''}${value}`;
-    const minutes = showWith0(Math.floor(s / 60));
-    const seconds = showWith0(Math.floor(s % 60));
-    return `${minutes}${delim}${seconds}`;
+export const sToHms = (d: number) => {
+    const h = Math.floor(d / 3600);
+    const m = Math.floor((d % 3600) / 60);
+    const s = Math.floor((d % 3600) % 60);
+
+    const hDisplay = h > 0 ? `${h}:` : '';
+    const mDisplay = `${('00' + m).slice(-2)}:`;
+    const sDisplay = ('00' + s).slice(-2);
+    return hDisplay + mDisplay + sDisplay;
 };
 
 const useWorkoutEngine = () => {
@@ -20,17 +21,17 @@ const useWorkoutEngine = () => {
     const [segments, setSegments] = useState<Segment[]>([]);
     const [segmentsGraph, setSegmentsGraph] = useState<number[]>([]);
     const [duration, setDuration] = useState<number>(0);
-    const [status, setStatus] = useState<'start' | 'stop' | 'pause' | 'end'>(
-        'stop',
+    const [status, setStatus] = useState<'running' | 'stopped' | 'paused'>(
+        'stopped',
     );
     const timer = useRef<number>(0);
     const currentSegment = useRef<number>(0);
     let stride: Stride = StrideType.Jog;
-    const time = sToMMSS(timer.current - 3);
-    const totalTime = sToMMSS(duration - 3);
+    const time = sToHms(timer.current);
+    const totalTime = sToHms(duration);
     const percentage = 100 - (timer.current * 100) / duration;
     const segmentNumber = currentSegment.current;
-    const segmentTime = sToMMSS(segmentElapsedTime);
+    const segmentTime = sToHms(segmentElapsedTime);
     const segmentPercentage =
         segments.length > currentSegment.current
             ? (segmentElapsedTime * 100) / segments[currentSegment.current].time
@@ -64,7 +65,7 @@ const useWorkoutEngine = () => {
             setComplete(currentSegment.current, true);
             currentSegment.current += 1;
             if (currentSegment.current === segments.length) {
-                setStatus('end');
+                setStatus('stopped');
                 stopInterval();
             } else {
                 setComplete(currentSegment.current, false);
@@ -80,18 +81,11 @@ const useWorkoutEngine = () => {
         clearComplete();
         stopInterval();
         setSegmentElapsedTime(0);
-        setStatus('stop');
+        setStatus('stopped');
     };
 
     const load = (workout: Workout, currentStride: Stride) => {
         const s = workout.segments.slice(0);
-        s.splice(0, 0, {
-            pace: Pace.start,
-            time: 3,
-            speed: 0,
-            startTime: 0,
-            endTime: 3,
-        });
         stride = currentStride;
         setDuration(updateSegmentInteval(s));
         setSegments(s);
@@ -120,16 +114,16 @@ const useWorkoutEngine = () => {
     };
 
     const toggle = () => {
-        if (status === 'start') {
-            setStatus('pause');
+        if (status === 'running') {
+            setStatus('paused');
             stopInterval();
-        } else if (status === 'pause') {
-            setStatus('start');
+        } else if (status === 'paused') {
+            setStatus('running');
             setComplete(currentSegment.current, false);
             updateTimeValue();
             startInterval();
         } else {
-            setStatus('start');
+            setStatus('running');
             timer.current = 0;
             currentSegment.current = 0;
             clearComplete();
