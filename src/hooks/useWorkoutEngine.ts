@@ -1,6 +1,6 @@
 import { Workout } from '../models/workout';
 import { Segment } from '../models/segment';
-import { Stride, StrideType } from '../models/stride';
+import { Stride, Strides, StrideType } from '../models/stride';
 import { Pace } from '../models/pace';
 import { useRef, useState } from 'react';
 import useInterval from './useInterval';
@@ -26,7 +26,7 @@ const useWorkoutEngine = () => {
     );
     const timer = useRef<number>(0);
     const currentSegment = useRef<number>(0);
-    let stride: Stride = StrideType.Jog;
+    let stride: Stride = Strides[StrideType.Jog];
     const time = sToHms(timer.current);
     const totalTime = sToHms(duration);
     const percentage = 100 - (timer.current * 100) / duration;

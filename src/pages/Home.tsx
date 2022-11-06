@@ -8,6 +8,7 @@ import {
     IonIcon,
     IonItem,
     IonPage,
+    IonRange,
     IonSelect,
     IonSelectOption,
     IonSpinner,
@@ -35,7 +36,7 @@ import { Http } from '@capacitor-community/http';
 import { sortBy } from 'lodash';
 import { GitFile } from 'models/gitFile';
 import { Workout } from 'models/workout';
-import { StrideType } from 'models/stride';
+import { Strides } from 'models/stride';
 
 import useWorkoutEngine, { sToHms } from 'hooks/useWorkoutEngine';
 import useInterval from 'hooks/useInterval';
@@ -44,6 +45,8 @@ import WorkoutStatus from 'components/WorkoutStatus/WorkoutStatus';
 import WorkoutChart from 'components/WorkoutChart/WorkoutChart';
 
 import './Home.css';
+import Person from 'components/Icons/Person';
+import PersonRunning from 'components/Icons/PersonRunning';
 
 const Home: React.FC = () => {
     const engine = useWorkoutEngine();
@@ -53,6 +56,7 @@ const Home: React.FC = () => {
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+    const [stride, setStride] = useState<number>(1);
     const [time, setTime] = useState<string>();
     const scroll = useRef<VirtuosoHandle>(null);
     const { data: languages } = useQuery(['getSupportedVoices'], () =>
@@ -147,7 +151,7 @@ const Home: React.FC = () => {
     };
 
     const loadWorkout = (event: any) => {
-        engine.load(workoutsArray[event.detail.value], StrideType.Jog);
+        engine.load(workoutsArray[event.detail.value], Strides[stride]);
     };
 
     return (
@@ -260,69 +264,109 @@ const Home: React.FC = () => {
                     <div
                         style={{
                             display: 'flex',
-                            alignContent: 'center',
-                            margin: '8px',
-                            gap: '8px',
-                            fontSize: '26px',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0px 8px',
+                            gap: '4px',
+                            width: '100%',
+                            minHeight: '58px',
                         }}
                     >
-                        {engine.status !== 'stopped' ? (
-                            time
-                        ) : (
-                            <>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignContent: 'center',
-                                        gap: '4px',
-                                    }}
-                                >
-                                    <IonIcon icon={statsChart} />
-                                    <div>
-                                        {engine.segments.length - 1 < 0
-                                            ? 0
-                                            : engine.segments.length - 1}
-                                    </div>
-                                </div>
-                                <IonIcon icon={removeOutline} />
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignContent: 'center',
-                                        gap: '4px',
-                                    }}
-                                >
-                                    <IonIcon icon={stopwatch} />
-                                    <div>{engine.totalTime}</div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                    <IonButtons slot="end">
-                        {engine.status !== 'stopped' && (
-                            <IonButton
-                                size="large"
-                                color="primary"
-                                fill="solid"
-                                onClick={engine.stop}
-                            >
-                                <IonIcon icon={square} />
-                            </IonButton>
-                        )}
-                        <IonButton
-                            disabled={engine.segments.length <= 0}
-                            size="large"
-                            color="primary"
-                            fill="solid"
-                            onClick={engine.toggle}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignContent: 'center',
+                                gap: '8px',
+                                fontSize: '26px',
+                            }}
                         >
-                            <IonIcon
-                                icon={
-                                    engine.status === 'running' ? pause : play
-                                }
-                            />
-                        </IonButton>
-                    </IonButtons>
+                            {engine.status !== 'stopped' ? (
+                                time
+                            ) : (
+                                <>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignContent: 'center',
+                                            gap: '4px',
+                                        }}
+                                    >
+                                        <IonIcon icon={statsChart} />
+                                        <div>
+                                            {engine.segments.length - 1 < 0
+                                                ? 0
+                                                : engine.segments.length - 1}
+                                        </div>
+                                    </div>
+                                    <IonIcon icon={removeOutline} />
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignContent: 'center',
+                                            gap: '4px',
+                                        }}
+                                    >
+                                        <IonIcon icon={stopwatch} />
+                                        <div>{engine.totalTime}</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        {engine.status === 'stopped' && (
+                            <div
+                                style={{
+                                    width: '300px',
+                                }}
+                            >
+                                <IonRange
+                                    value={stride}
+                                    onIonChange={({ detail }) =>
+                                        setStride(detail.value as number)
+                                    }
+                                    ticks={true}
+                                    snaps={true}
+                                    min={0}
+                                    max={2}
+                                >
+                                    <div slot="start">
+                                        <Person />
+                                    </div>
+                                    <div slot="end">
+                                        <PersonRunning />
+                                    </div>
+                                </IonRange>
+                            </div>
+                        )}
+                        <div>
+                            <IonButtons slot="end">
+                                {engine.status !== 'stopped' && (
+                                    <IonButton
+                                        size="large"
+                                        color="primary"
+                                        fill="solid"
+                                        onClick={engine.stop}
+                                    >
+                                        <IonIcon icon={square} />
+                                    </IonButton>
+                                )}
+                                <IonButton
+                                    disabled={engine.segments.length <= 0}
+                                    size="large"
+                                    color="primary"
+                                    fill="solid"
+                                    onClick={engine.toggle}
+                                >
+                                    <IonIcon
+                                        icon={
+                                            engine.status === 'running'
+                                                ? pause
+                                                : play
+                                        }
+                                    />
+                                </IonButton>
+                            </IonButtons>
+                        </div>
+                    </div>
                 </IonToolbar>
             </IonFooter>
         </IonPage>
