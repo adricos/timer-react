@@ -83,10 +83,8 @@ const Home: React.FC = () => {
                     setWorkoutsArray((w) => {
                         if (results.length > 0) {
                             const newWorkoutsArray = sortBy(
-                                results.map(
-                                    (r) => JSON.parse(r.data) as Workout,
-                                ),
-                                (item) => item.name.toLowerCase(),
+                                results.map((r) => JSON.parse(r.data)),
+                                'name',
                             );
                             Preferences.set({
                                 key: 'workouts',
@@ -105,20 +103,16 @@ const Home: React.FC = () => {
 
     useEffect(() => {
         setIsDarkMode(isMediaDark);
-        if (isMediaDark) {
-            document.body.classList.toggle('dark', isMediaDark);
-        }
+        document.body.classList.toggle('dark', isMediaDark);
     }, [isMediaDark]);
 
     useEffect(() => {
         Preferences.get({ key: 'workouts' })
-            .then((val) => {
-                if (val.value === null) {
-                    sync();
-                } else {
-                    setWorkoutsArray(JSON.parse(val.value ?? '{}'));
-                }
-            })
+            .then((val) =>
+                val.value === null
+                    ? sync()
+                    : setWorkoutsArray(JSON.parse(val.value ?? '{}')),
+            )
             .catch(() => sync())
             .finally(() => start());
         return () => {
@@ -142,16 +136,12 @@ const Home: React.FC = () => {
     }, [engine.segmentElapsedTime, languageCode, languages]);
 
     useEffect(() => {
-        scrollTo(engine.segmentNumber);
+        if (scroll && scroll.current) {
+            scroll.current.scrollToIndex(engine.segmentNumber);
+        }
     }, [engine.segmentNumber]);
 
-    const scrollTo = (item: number): void => {
-        if (scroll && scroll.current) {
-            scroll.current.scrollToIndex(item);
-        }
-    };
-
-    const toggleDarkMode = (event: any) => {
+    const toggleDarkMode = () => {
         document.body.classList.toggle('dark');
         setIsDarkMode((d) => !d);
     };
@@ -254,9 +244,7 @@ const Home: React.FC = () => {
                                         <div className="item-content">
                                             <div>{sToHms(segment.time)}</div>
                                             <div>
-                                                {`${(
-                                                    segment.speed ?? 0
-                                                ).toFixed(1)} mph`}
+                                                {segment.speed.toFixed(1)}
                                             </div>
                                             <div>{index}</div>
                                         </div>
