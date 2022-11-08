@@ -52,7 +52,7 @@ const Home: React.FC = () => {
     const engine = useWorkoutEngine();
     const { height, width } = useWindowDimensions();
     const { languageCode } = useGetLanguageCode();
-
+    const [currentWorkout, setCurrentWorkout] = useState<any>();
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
@@ -151,6 +151,7 @@ const Home: React.FC = () => {
     };
 
     const loadWorkout = (event: any) => {
+        setCurrentWorkout(event.detail.value);
         engine.load(workoutsArray[event.detail.value], Strides[stride]);
     };
 
@@ -230,7 +231,7 @@ const Home: React.FC = () => {
                         }}
                     >
                         <Virtuoso
-                            className="ion-content-scroll-host"
+                            //className="ion-content-scroll-host"
                             ref={scroll}
                             data={engine.segments}
                             itemContent={(index, segment) => {
@@ -320,9 +321,15 @@ const Home: React.FC = () => {
                             >
                                 <IonRange
                                     value={stride}
-                                    onIonChange={({ detail }) =>
-                                        setStride(detail.value as number)
-                                    }
+                                    onIonChange={({ detail }) => {
+                                        if (currentWorkout) {
+                                            engine.load(
+                                                workoutsArray[currentWorkout],
+                                                Strides[detail.value as number],
+                                            );
+                                        }
+                                        setStride(detail.value as number);
+                                    }}
                                     ticks={true}
                                     snaps={true}
                                     min={0}
