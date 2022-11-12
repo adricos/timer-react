@@ -54,6 +54,7 @@ const Home: React.FC = () => {
     const { languageCode } = useGetLanguageCode();
 
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
+    const [workout, setWorkout] = useState<any>();
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const [stride, setStride] = useState<number>(1);
@@ -151,6 +152,7 @@ const Home: React.FC = () => {
     };
 
     const loadWorkout = (event: any) => {
+        setWorkout(event.detail.value);
         engine.load(workoutsArray[event.detail.value], Strides[stride]);
     };
 
@@ -320,9 +322,15 @@ const Home: React.FC = () => {
                             >
                                 <IonRange
                                     value={stride}
-                                    onIonChange={({ detail }) =>
-                                        setStride(detail.value as number)
-                                    }
+                                    onIonChange={({ detail }) => {
+                                        if (workout) {
+                                            engine.load(
+                                                workoutsArray[workout],
+                                                Strides[detail.value as number],
+                                            );
+                                        }
+                                        setStride(detail.value as number);
+                                    }}
                                     ticks={true}
                                     snaps={true}
                                     min={0}
