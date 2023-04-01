@@ -54,7 +54,7 @@ const Home: React.FC = () => {
     const { languageCode } = useGetLanguageCode();
 
     const [workoutsArray, setWorkoutsArray] = useState<Workout[]>([]);
-    const [workout, setWorkout] = useState<any>();
+    const [workout, setWorkout] = useState<number>();
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const [stride, setStride] = useState<number>(1);
@@ -218,7 +218,7 @@ const Home: React.FC = () => {
                         }}
                     >
                         {engine.status !== 'stopped' ? (
-                            <WorkoutStatus engine={engine} time={time} />
+                            <WorkoutStatus engine={engine} />
                         ) : (
                             <WorkoutChart
                                 segmentsGraph={engine.segmentsGraph}
@@ -248,11 +248,21 @@ const Home: React.FC = () => {
                                         className="segment"
                                     >
                                         <div className="item-content">
-                                            <div>{sToHms(segment.time)}</div>
-                                            <div>
+                                            <div
+                                                style={{ justifySelf: 'start' }}
+                                            >
+                                                {sToHms(segment.time)}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    justifySelf: 'center',
+                                                }}
+                                            >
                                                 {segment.speed.toFixed(1)}
                                             </div>
-                                            <div>{index}</div>
+                                            <div style={{ justifySelf: 'end' }}>
+                                                {index}
+                                            </div>
                                         </div>
                                     </IonItem>
                                 );
@@ -323,7 +333,7 @@ const Home: React.FC = () => {
                                 <IonRange
                                     value={stride}
                                     onIonChange={({ detail }) => {
-                                        if (workout) {
+                                        if (workout !== undefined) {
                                             engine.load(
                                                 workoutsArray[workout],
                                                 Strides[detail.value as number],

@@ -69,6 +69,8 @@ const WorkoutChart = ({ segmentsGraph }: WorkoutChartProps) => {
                         labels: segmentsGraph.map(() => ''),
                         datasets: [
                             {
+                                cubicInterpolationMode: 'monotone',
+                                tension: 0.4,
                                 data: segmentsGraph,
                                 backgroundColor: 'rgba(0, 0, 0, 0)',
                                 borderColor: 'rgb(38, 194, 129)',

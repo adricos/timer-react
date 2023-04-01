@@ -1,12 +1,11 @@
+import { Engine } from 'hooks/useWorkoutEngine';
 import './WorkoutStatus.css';
 
 export type WorkoutStatusProps = {
-    engine: any;
-    circleColor?: string;
-    time?: string;
+    engine: Engine;
 };
 
-const WorkoutStatus = ({ engine, circleColor, time }: WorkoutStatusProps) => {
+const WorkoutStatus = ({ engine }: WorkoutStatusProps) => {
     const circleR = 40;
     const circleDasharray = 2 * Math.PI * circleR;
     const segmentCircleR = 34;

@@ -16,7 +16,25 @@ export const sToHms = (d: number) => {
     return hDisplay + mDisplay + sDisplay;
 };
 
-const useWorkoutEngine = () => {
+export interface Engine {
+    time: string;
+    percentage: number;
+    segmentNumber: number;
+    segmentTime: string;
+    segmentPercentage: number;
+    segment: Segment;
+    nextSegment: Segment;
+    segments: Segment[];
+    totalTime: string;
+    segmentsGraph: number[];
+    segmentElapsedTime: number;
+    status: 'running' | 'stopped' | 'paused';
+
+    load: (workout: Workout, currentStride: Stride) => void;
+    toggle: () => void;
+    stop: () => void;
+}
+const useWorkoutEngine = (): Engine => {
     const [segmentElapsedTime, setSegmentElapsedTime] = useState<number>(0);
     const [segments, setSegments] = useState<Segment[]>([]);
     const [segmentsGraph, setSegmentsGraph] = useState<number[]>([]);
