@@ -52,7 +52,7 @@ const WorkoutStatus = ({ engine }: WorkoutStatusProps) => {
                 )}
             />
             <text x="3%" y="9%" className="timer-subtext">
-                {`${engine.segmentNumber} / ${engine.segments.length - 1}`}
+                {`${engine.segmentNumber + 1} / ${engine.segments.length}`}
             </text>
             <text x="77%" y="9%" className="timer-subtext">
                 {engine.totalTime}
