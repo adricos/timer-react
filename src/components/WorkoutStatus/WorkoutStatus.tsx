@@ -1,12 +1,11 @@
+import { Engine } from 'hooks/useWorkoutEngine';
 import './WorkoutStatus.css';
 
 export type WorkoutStatusProps = {
-    engine: any;
-    circleColor?: string;
-    time?: string;
+    engine: Engine;
 };
 
-const WorkoutStatus = ({ engine, circleColor, time }: WorkoutStatusProps) => {
+const WorkoutStatus = ({ engine }: WorkoutStatusProps) => {
     const circleR = 40;
     const circleDasharray = 2 * Math.PI * circleR;
     const segmentCircleR = 34;
@@ -53,7 +52,7 @@ const WorkoutStatus = ({ engine, circleColor, time }: WorkoutStatusProps) => {
                 )}
             />
             <text x="3%" y="9%" className="timer-subtext">
-                {`${engine.segmentNumber} / ${engine.segments.length - 1}`}
+                {`${engine.segmentNumber + 1} / ${engine.segments.length}`}
             </text>
             <text x="77%" y="9%" className="timer-subtext">
                 {engine.totalTime}
